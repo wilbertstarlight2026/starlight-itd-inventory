@@ -1,0 +1,87 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL Database ────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: starlight_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-starlight_inventory}
+      POSTGRES_USER: ${POSTGRES_USER:-starlight_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-starlight_admin} -d ${POSTGRES_DB:-starlight_inventory}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Fastify Backend ────────────────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: starlight_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-starlight_admin}:${POSTGRES_PASSWORD:-change_me_in_production}@postgres:5432/${POSTGRES_DB:-starlight_inventory}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - uploads_data:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Web Admin (React + Vite) ───────────────────────
+  web-admin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web-admin
+    container_name: starlight_web_admin
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    ports:
+      - "5173:80"
+
+  # ── Nginx Reverse Proxy (optional) ────────────────
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: starlight_nginx
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - backend
+  #     - web-admin
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+
+volumes:
+  postgres_data:
+    driver: local
+  uploads_data:
+    driver: local

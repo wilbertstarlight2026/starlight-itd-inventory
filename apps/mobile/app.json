@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "Starlight ITD Inventory",
+    "slug": "starlight-itd-inventory",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E3A5F"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.starlight.itdinventory",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is required to scan QR codes and barcodes."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E3A5F"
+      },
+      "package": "com.starlight.itdinventory",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera to scan QR codes and barcodes."
+        }
+      ],
+      [
+        "expo-secure-store"
+      ]
+    ],
+    "scheme": "starlight-inventory",
+    "extra": {
+      "eas": {
+        "projectId": "starlight-itd-inventory"
+      }
+    }
+  }
+}

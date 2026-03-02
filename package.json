@@ -1,0 +1,25 @@
+{
+  "name": "starlight-itd-inventory",
+  "version": "1.0.0",
+  "description": "Starlight Business Consulting Services Inc — IT Department Inventory Management System",
+  "private": true,
+  "workspaces": [
+    "apps/mobile",
+    "apps/backend",
+    "apps/web-admin",
+    "shared"
+  ],
+  "scripts": {
+    "dev:backend": "cd apps/backend && npm run dev",
+    "dev:web": "cd apps/web-admin && npm run dev",
+    "build:backend": "cd apps/backend && npm run build",
+    "build:web": "cd apps/web-admin && npm run build",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
