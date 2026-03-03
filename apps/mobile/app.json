@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#1E3A5F"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.starlight.itdinventory",
@@ -25,7 +27,11 @@
         "backgroundColor": "#1E3A5F"
       },
       "package": "com.starlight.itdinventory",
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -41,9 +47,13 @@
     ],
     "scheme": "starlight-inventory",
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "starlight-itd-inventory"
+        "projectId": "e89516b2-1dc0-466e-b9a8-18d2d7291879"
       }
-    }
+    },
+    "owner": "janjan2026"
   }
 }
