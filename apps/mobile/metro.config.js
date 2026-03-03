@@ -2,13 +2,6 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
-// expo-router requires EXPO_ROUTER_APP_ROOT to be set before bundling.
-// In EAS Build, the Gradle task invokes metro directly without expo CLI,
-// so the env var is not automatically set.
-if (!process.env.EXPO_ROUTER_APP_ROOT) {
-  process.env.EXPO_ROUTER_APP_ROOT = path.join(__dirname, 'app');
-}
-
 const projectRoot = __dirname;
 const monorepoRoot = path.resolve(projectRoot, '../..');
 
@@ -36,6 +29,16 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     };
   }
   return context.resolveRequest(context, moduleName, platform);
+};
+
+// expo-router v3 reads routerRoot from customTransformOptions (NOT process.env).
+// @expo/metro-config's babel-transformer.js reads:
+//   options.customTransformOptions?.routerRoot
+// Setting it here ensures EAS Build (which invokes Gradle/Metro directly
+// without the Expo CLI that normally injects this option) finds the app/ dir.
+config.transformer.customTransformOptions = {
+  ...config.transformer.customTransformOptions,
+  routerRoot: 'app',
 };
 
 module.exports = config;
