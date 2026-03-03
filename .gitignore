@@ -47,3 +47,4 @@ apps/mobile/credentials.json
 apps/mobile/*.p12
 apps/mobile/*.jks
 apps/mobile/*.keystore
+.vercel

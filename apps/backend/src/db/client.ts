@@ -14,7 +14,7 @@ export const db = {
     text: string,
     params?: unknown[]
   ): Promise<{ rows: T[]; rowCount: number | null }> =>
-    pool.query(text, params),
+    pool.query(text, params) as unknown as Promise<{ rows: T[]; rowCount: number | null }>,
 
   transaction: async <T>(
     fn: (client: PoolClient) => Promise<T>

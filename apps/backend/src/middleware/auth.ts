@@ -9,8 +9,9 @@ export interface JwtPayload {
   exp: number;
 }
 
-declare module 'fastify' {
-  interface FastifyRequest {
+// Augment @fastify/jwt so request.user is typed as JwtPayload
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
     user: JwtPayload;
   }
 }

@@ -38,6 +38,7 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  department_name?: string | null;
 }
 
 export interface Department {
@@ -90,9 +91,18 @@ export interface Item {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-  // Joined fields
+  // Joined fields (nested — single item GET)
   category?: Category;
   current_assignment?: Assignment;
+  // Flat joined fields (list GET responses)
+  category_name?: string | null;
+  category_parent_id?: string | null;
+  assignment_id?: string | null;
+  assignment_employee_id?: string | null;
+  assignment_department_id?: string | null;
+  assignment_location_id?: string | null;
+  assignment_assigned_at?: string | null;
+  assigned_to_name?: string | null;
 }
 
 export interface Assignment {
@@ -125,6 +135,7 @@ export interface AuditLog {
   performed_by: string | null;
   performed_at: string;
   performed_by_user?: User;
+  performed_by_name?: string | null;
 }
 
 export interface SyncMetadata {
@@ -315,6 +326,24 @@ export interface ReportRequest {
     date_from?: string;
     date_to?: string;
   };
+}
+
+// ─── LIVE SYNC / WEBSOCKET TYPES ─────────────────────────────
+
+export type LiveEventType =
+  | 'item:created'
+  | 'item:updated'
+  | 'item:deleted'
+  | 'assignment:created'
+  | 'assignment:returned'
+  | 'category:created'
+  | 'category:deleted'
+  | 'ping';
+
+export interface LiveEvent {
+  type: LiveEventType;
+  data?: unknown;
+  timestamp: string;
 }
 
 // ─── DASHBOARD TYPES ─────────────────────────────────────────

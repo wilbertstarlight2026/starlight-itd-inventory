@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db } from '../db/client';
 import { requireAdmin, requireAuth } from '../middleware/auth';
+import { wsManager } from '../services/WSManager';
 
 const categorySchema = z.object({
   name: z.string().min(1).max(100),
@@ -29,6 +30,7 @@ export async function categoryRoutes(app: FastifyInstance) {
       'INSERT INTO categories (name, parent_id, description) VALUES ($1, $2, $3) RETURNING *',
       [parsed.data.name, parsed.data.parent_id ?? null, parsed.data.description ?? null]
     );
+    wsManager.broadcast({ type: 'category:created', data: result.rows[0], timestamp: new Date().toISOString() });
     return reply.status(201).send({ success: true, data: result.rows[0], error: null });
   });
 
@@ -63,6 +65,7 @@ export async function categoryRoutes(app: FastifyInstance) {
       if (!result.rows[0]) {
         return reply.status(404).send({ success: false, data: null, error: 'Category not found' });
       }
+      wsManager.broadcast({ type: 'category:deleted', data: { id: request.params.id }, timestamp: new Date().toISOString() });
       return reply.send({ success: true, data: null, error: null });
     }
   );

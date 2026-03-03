@@ -5,9 +5,13 @@
 import bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL environment variable is required');
+  process.exit(1);
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL ||
-    'postgresql://starlight_admin:change_me_in_production@localhost:5432/starlight_inventory',
+  connectionString: process.env.DATABASE_URL,
 });
 
 async function seed() {

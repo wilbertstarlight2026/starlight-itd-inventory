@@ -4,6 +4,7 @@ import { db } from '../db/client';
 import { requireAuth, requireManagerOrAdmin } from '../middleware/auth';
 import { logAudit } from '../utils/audit';
 import { generateItemCode } from '../utils/itemCode';
+import { wsManager } from '../services/WSManager';
 import type { Item, ItemFilters } from '@starlight/shared';
 
 const createItemSchema = z.object({
@@ -35,8 +36,9 @@ export async function itemRoutes(app: FastifyInstance) {
     let paramIdx = 1;
 
     if (query.search) {
+      const search = String(query.search).slice(0, 100);
       conditions.push(`(i.name ILIKE $${paramIdx} OR i.item_code ILIKE $${paramIdx} OR i.serial_number ILIKE $${paramIdx} OR i.barcode ILIKE $${paramIdx})`);
-      params.push(`%${query.search}%`);
+      params.push(`%${search}%`);
       paramIdx++;
     }
 
@@ -59,7 +61,9 @@ export async function itemRoutes(app: FastifyInstance) {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const orderBy = `ORDER BY i.${query.sort_by || 'created_at'} ${query.sort_order === 'asc' ? 'ASC' : 'DESC'}`;
+    const ALLOWED_SORT = new Set(['name', 'created_at', 'updated_at', 'status']);
+    const sortCol = ALLOWED_SORT.has(String(query.sort_by)) ? String(query.sort_by) : 'created_at';
+    const orderBy = `ORDER BY i.${sortCol} ${query.sort_order === 'asc' ? 'ASC' : 'DESC'}`;
 
     const countResult = await db.query<{ count: string }>(
       `SELECT COUNT(*) as count FROM items i ${whereClause}`,
@@ -216,10 +220,11 @@ export async function itemRoutes(app: FastifyInstance) {
       entity_type: 'item',
       entity_id: item.id,
       action: 'create',
-      new_value: item as Record<string, unknown>,
+      new_value: item as unknown as Record<string, unknown>,
       performed_by: request.user.sub,
     });
 
+    wsManager.broadcast({ type: 'item:created', data: { ...item, barcode: itemCode }, timestamp: new Date().toISOString() });
     return reply.status(201).send({ success: true, data: { ...item, barcode: itemCode }, error: null });
   });
 
@@ -287,11 +292,12 @@ export async function itemRoutes(app: FastifyInstance) {
         entity_type: 'item',
         entity_id: request.params.id,
         action: 'update',
-        old_value: old as Record<string, unknown>,
-        new_value: result.rows[0] as Record<string, unknown>,
+        old_value: old as unknown as Record<string, unknown>,
+        new_value: result.rows[0] as unknown as Record<string, unknown>,
         performed_by: request.user.sub,
       });
 
+      wsManager.broadcast({ type: 'item:updated', data: result.rows[0], timestamp: new Date().toISOString() });
       return reply.send({ success: true, data: result.rows[0], error: null });
     }
   );
@@ -317,6 +323,7 @@ export async function itemRoutes(app: FastifyInstance) {
         performed_by: request.user.sub,
       });
 
+      wsManager.broadcast({ type: 'item:deleted', data: { id: request.params.id }, timestamp: new Date().toISOString() });
       return reply.send({ success: true, data: null, error: null, message: 'Item deleted' });
     }
   );

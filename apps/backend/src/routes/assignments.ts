@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { db } from '../db/client';
 import { requireAuth, requireManagerOrAdmin } from '../middleware/auth';
 import { logAudit } from '../utils/audit';
+import { wsManager } from '../services/WSManager';
 
 const assignSchema = z.object({
   item_id: z.string().uuid(),
@@ -120,6 +121,7 @@ export async function assignmentRoutes(app: FastifyInstance) {
       performed_by: request.user.sub,
     });
 
+    wsManager.broadcast({ type: 'assignment:created', data: result, timestamp: new Date().toISOString() });
     return reply.status(201).send({ success: true, data: result, error: null });
   });
 
@@ -158,6 +160,7 @@ export async function assignmentRoutes(app: FastifyInstance) {
         performed_by: request.user.sub,
       });
 
+      wsManager.broadcast({ type: 'assignment:returned', data: result.rows[0], timestamp: new Date().toISOString() });
       return reply.send({ success: true, data: result.rows[0], error: null });
     }
   );

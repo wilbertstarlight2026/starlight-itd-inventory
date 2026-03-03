@@ -29,5 +29,8 @@
     "metro-runtime": "~0.80.8",
     "metro-transform-worker": "~0.80.8",
     "metro-babel-transformer": "~0.80.8"
+  },
+  "devDependencies": {
+    "@vercel/node": "^5.6.10"
   }
 }
