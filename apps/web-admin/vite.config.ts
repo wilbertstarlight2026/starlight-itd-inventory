@@ -4,6 +4,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: process.env.VITE_BASE_PATH || '/',
   resolve: {
     alias: {
       '@starlight/shared': path.resolve(__dirname, '../../shared/types/index.ts'),

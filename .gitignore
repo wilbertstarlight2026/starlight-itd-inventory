@@ -40,3 +40,10 @@ coverage/
 apps/mobile/.expo/
 apps/mobile/android/
 apps/mobile/ios/
+
+# Secrets & signing files
+build-apk.ps1
+apps/mobile/credentials.json
+apps/mobile/*.p12
+apps/mobile/*.jks
+apps/mobile/*.keystore
